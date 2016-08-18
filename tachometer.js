@@ -2,18 +2,15 @@ var circumference = 2.11;
 var pin = BTN;
 
 var counter = 0;
-var last_counter=0;
 var last_time=0;
-var velocity=0;
-var interval=0;
+var RPM=0;
 
 setDeepSleep(1);
 
 var w=setWatch(function(e) {
+  RPM = 60 / (e.time - last_time);
+  last_time=e.time;
   counter++;
-  if (!interval) {
-    interval=setInterval(calcVelocity, 2000);
-  }
   },
   pin,
   {repeat: 'true', edge:'rising'}
@@ -23,15 +20,10 @@ function getDistance() {
   return counter * circumference;
 }
 
-
-function calcVelocity(){
-  var current_time=getTime();
-  var current_counter=counter;
-  velocity=(current_counter-last_counter)*circumference/(current_time-last_time);
-  last_time=current_time;
-  last_counter=current_counter;
-  if (velocity===0) {
-    clearInterval(interval);
-    interval=0;
+function getVelocity(){
+  if ( (getTime()-last_time) > 4.0 ) {
+    return 0.0;
   }
+  
+  return RPM * 60 * circumference / 1000.0;
 }
