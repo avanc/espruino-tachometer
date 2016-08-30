@@ -20,12 +20,21 @@ var w=setWatch(function(e) {
   RPM = 60 / (e.time - last_time);
   last_time=e.time;
   counter++;
-  // console.log(counter + '\n');
+  console.log(counter + '\n');
   },
   pin,
   {repeat: 'true', edge:'falling'}
 );
 
+
+setWatch(function(e) {
+  if ( (e.time-e.lastTime)>1.5 ) {
+    storeCounter();
+  }
+  },
+  BTN,
+  {repeat: true, edge:'falling'}
+);
 
 function deadman() {
   if (deadmantimer === undefined) {
@@ -43,7 +52,7 @@ function deadman() {
 
 
 function storeCounter(){
-  digitalWrite(LED1, 1);
+  pulse(LED1, 1000);
   data= new Uint8Array(4);
   data_int = new Int32Array(data.buffer);
   data_int[0]=counter;
@@ -72,3 +81,24 @@ function getVelocity(){
   
   return RPM * 60 * circumference / 1000.0;
 }
+
+
+function pulse(led, duration) {
+  var inc=100.0 / duration / 2.0;
+  var val=0.0;
+  
+  var int=setInterval(function() {
+    val+=inc;
+    if (val > 1.0) {
+      val = 1.0;
+      inc=-inc;
+    } else if (val < 0.0) {
+      val = 0.0;
+      clearInterval(int);
+    }
+    
+    
+    analogWrite(led, val, {soft:true});
+  },100);
+}
+
