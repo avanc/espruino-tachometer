@@ -8,13 +8,8 @@ var deadmantimer;
 
 var f = new (require("FlashEEPROM"))();
 
-
-
 setDeepSleep(1);
 pinMode(pin, 'input_pullup');
-
-
-E.on('init', readCounter);
 
 
 var w=setWatch(function(e) {
@@ -25,6 +20,7 @@ var w=setWatch(function(e) {
   RPM = 60 / (e.time - last_time);
   last_time=e.time;
   counter++;
+  // console.log(counter + '\n');
   },
   pin,
   {repeat: 'true', edge:'falling'}
@@ -48,12 +44,21 @@ function deadman() {
 
 function storeCounter(){
   digitalWrite(LED1, 1);
-  f.write(1, counter);
+  data= new Uint8Array(4);
+  data_int = new Int32Array(data.buffer);
+  data_int[0]=counter;
+  f.write(1, data);
 }
 
 function readCounter(){
-  counter=f.read(1, counter)[0];
+  data= f.read(1);
+  if (data!==undefined) {
+    data_int = new Int32Array(data.buffer);
+    counter= data_int[0];
+  }
 }
+
+E.on('init', readCounter);
 
 
 function getDistance() {
